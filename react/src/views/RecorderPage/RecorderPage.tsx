@@ -6,6 +6,7 @@ import { RecorderRecording } from "./components/RecorderRecording/RecorderRecord
 import { StartRecording } from "./components/RecorderStart/StartRecording";
 import { FinishedRecording } from "./components/RecorderFinished/FinishedRecording";
 import { transcribeAudio } from "../../api/SpeechAPI";
+import { TranscriptForm } from "./components/TranscriptForm/TranscriptForm";
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -52,6 +53,8 @@ const getAudioRecorderOptions = (): Options => ({
 
 export const RecorderPage = () => {
   const [recordingState, setRecordingState] = useState<string>();
+  const [transcript, setTranscript] = useState<string>();
+
   const [timer, setTimer] = useState(0);
   const increment = useRef<NodeJS.Timeout>();
 
@@ -64,7 +67,8 @@ export const RecorderPage = () => {
   useEffect(() => {
     async function asyncTranscribe() {
       if (blob) {
-        await transcribeAudio(blob);
+        const response = await transcribeAudio(blob);
+        setTranscript(response.data.transcript);
         setRecordingState("transcribed");
 
         if (isSupported) {
@@ -141,13 +145,19 @@ export const RecorderPage = () => {
       recorder.reset();
     });
 
-    setRecordingState("transcribing");
+    setRecordingState("uploading");
   };
 
   const closeRecorder = () => {
+    setRecordingState("closed");
+  };
+
+  const resetRecorder = () => {
+    // can we do this cleaner?
     setRecordingState(undefined);
     setTimer(0);
     setBlob(undefined);
+    setTranscript(undefined);
   };
 
   const started = recordingState !== undefined;
@@ -155,13 +165,14 @@ export const RecorderPage = () => {
   const isRecording = recordingState === "recording";
   const isTranscribing = recordingState === "transcribing";
   const isTranscribed = recordingState === "transcribed";
+  const showTranscript = recordingState === "closed";
 
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
       {!started && <StartRecording startRecorder={startRecorder} />}
-      {started && (
+      {started && !showTranscript && (
         <>
           <p className={classes.timer}>{formatTime()}</p>
         </>
@@ -180,6 +191,13 @@ export const RecorderPage = () => {
           finishedRecording={closeRecorder}
           isProcessing={isTranscribing}
           isProcessed={isTranscribed}
+        />
+      )}
+
+      {showTranscript && transcript && (
+        <TranscriptForm
+          transcript={transcript}
+          closeRecording={resetRecorder}
         />
       )}
     </div>

@@ -60,7 +60,7 @@ export const FinishedRecording = ({
       {isProcessed && <p className={classes.savedText}>Opgeslagen!</p>}
 
       <Button className={classes.closeButton} onClick={finishedRecording}>
-        Sluiten
+        Toon Transcript
       </Button>
     </div>
   );
