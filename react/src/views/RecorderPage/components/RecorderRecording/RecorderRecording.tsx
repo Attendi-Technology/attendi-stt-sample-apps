@@ -1,8 +1,7 @@
 import { Button } from "@material-ui/core";
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
-import React from "react";
+import { createStyles, makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     activePause: {
       display: "block",
@@ -15,7 +14,7 @@ const useStyles = makeStyles((theme: Theme) =>
       fontSize: 18,
       fontWeight: "bold",
       letterSpacing: 2.7,
-      textAlign: "center"
+      textAlign: "center",
     },
     activeStop: {
       display: "block",
@@ -30,8 +29,8 @@ const useStyles = makeStyles((theme: Theme) =>
       fontWeight: "bold",
       letterSpacing: 2.7,
       textAlign: "center",
-    }
-  })
+    },
+  }),
 );
 
 interface IRecorderProps {
@@ -42,33 +41,31 @@ interface IRecorderProps {
   isPaused: boolean;
 }
 
-const AudioRecorder = ({ pauseRecorder, stopRecorder, resumeRecorder, isRecording, isPaused }: IRecorderProps) => {
+export const RecorderRecording = ({
+  pauseRecorder,
+  stopRecorder,
+  resumeRecorder,
+  isRecording,
+  isPaused,
+}: IRecorderProps) => {
   const classes = useStyles();
   return (
     <>
-      <Button
-        className={classes.activeStop}
-        onClick={stopRecorder}>
+      <Button className={classes.activeStop} onClick={stopRecorder}>
         Stop opname
       </Button>
 
-      {isRecording &&
-        <Button
-          className={classes.activePause}
-          onClick={pauseRecorder}>
+      {isRecording && (
+        <Button className={classes.activePause} onClick={pauseRecorder}>
           Pauzeren
-       </Button>
-      }
+        </Button>
+      )}
 
-      {isPaused &&
-        <Button
-          className={classes.activePause}
-          onClick={resumeRecorder}>
+      {isPaused && (
+        <Button className={classes.activePause} onClick={resumeRecorder}>
           Hervatten
-      </Button>
-      }
+        </Button>
+      )}
     </>
   );
 };
-
-export default AudioRecorder;

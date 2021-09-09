@@ -1,3 +1,3 @@
 export interface ITranscript {
-    transcript: string;
+  transcript: string;
 }

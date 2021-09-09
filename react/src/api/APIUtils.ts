@@ -1,6 +1,9 @@
-import axios from 'axios';
+import axios from "axios";
 
-axios.defaults.baseURL = process.env.REACT_APP_BASE_API_URL;
-axios.defaults.headers.common['x-API-key'] =  process.env.REACT_APP_API_KEY;
-
-export default axios;
+export const API = axios.create({
+  baseURL: process.env.REACT_APP_BASE_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+    "x-API-key": process.env.REACT_APP_API_KEY,
+  },
+});
