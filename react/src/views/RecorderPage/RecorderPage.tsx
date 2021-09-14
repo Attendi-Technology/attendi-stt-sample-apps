@@ -149,7 +149,9 @@ export const RecorderPage = () => {
   const closeRecorder = () => {
     setRecordingState("closed");
     if (transcript === "") {
-      setTranscript("Empty transcript, try again");
+      setTranscript(
+        "We could not get any transcript from the audio, please try again",
+      );
     }
   };
 
