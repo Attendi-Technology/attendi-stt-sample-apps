@@ -1,27 +1,10 @@
-import { Button } from "@material-ui/core";
+import { Button, Theme } from "@material-ui/core";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     activePause: {
-      display: "block",
-      height: 60,
-      width: 350,
-      marginTop: 15,
-      borderRadius: 4,
-      backgroundColor: "#DDE9F7",
-      color: "#5D728A",
-      fontSize: 18,
-      fontWeight: "bold",
-      letterSpacing: 2.7,
-      textAlign: "center",
-    },
-    activeStop: {
-      display: "block",
-      height: 60,
-      width: 350,
-      marginTop: 15,
-      backgroundColor: "#C30404",
+      backgroundColor: "#FE855D",
       color: "#FFFFFF",
       borderRadius: 4,
       textTransform: "uppercase",
@@ -29,6 +12,18 @@ const useStyles = makeStyles(() =>
       fontWeight: "bold",
       letterSpacing: 2.7,
       textAlign: "center",
+      marginBottom: theme.spacing(2),
+    },
+    activeStop: {
+      backgroundColor: "#FE855D",
+      color: "#FFFFFF",
+      borderRadius: 4,
+      textTransform: "uppercase",
+      fontSize: 18,
+      fontWeight: "bold",
+      letterSpacing: 2.7,
+      textAlign: "center",
+      marginBottom: theme.spacing(2),
     },
   }),
 );

@@ -6,28 +6,19 @@ import { RecorderRecording } from "./components/RecorderRecording/RecorderRecord
 import { StartRecording } from "./components/RecorderStart/StartRecording";
 import { FinishedRecording } from "./components/RecorderFinished/FinishedRecording";
 import { transcribeAudio } from "../../api/SpeechAPI";
-import { TranscriptForm } from "./components/TranscriptForm/TranscriptForm";
+import { TranscriptDetails } from "./components/TranscriptDetails/TranscriptDetails";
 
 const useStyles = makeStyles(() =>
   createStyles({
     root: {
-      textAlign: "center",
-      "& h1": {
-        margin: "50px 0 50px 0",
-        color: "#2F3539",
-        fontSize: 37,
-        fontWeight: "bold",
-      },
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
     },
     timer: {
-      color: "#2F3539",
-      fontSize: 37,
-      marginBottom: 60,
-    },
-    offlineText: {
-      wordWrap: "break-word",
-      textAlign: "center",
-      flex: "0 0 120px",
+      fontSize: "2.4rem",
     },
   }),
 );
@@ -53,7 +44,7 @@ const getAudioRecorderOptions = (): Options => ({
 
 export const RecorderPage = () => {
   const [recordingState, setRecordingState] = useState<string>();
-  const [transcript, setTranscript] = useState<string>();
+  const [transcript, setTranscript] = useState<string>("");
 
   const [timer, setTimer] = useState(0);
   const increment = useRef<NodeJS.Timeout>();
@@ -63,6 +54,13 @@ export const RecorderPage = () => {
   const microphone = useRef<MediaStream>();
   const [recorder, setRecorder] = useState<RecordRTC | null>(null);
   const [blob, setBlob] = useState<Blob>();
+
+  const started = recordingState !== undefined;
+  const isPaused = recordingState === "paused";
+  const isRecording = recordingState === "recording";
+  const isTranscribing = recordingState === "transcribing";
+  const isTranscribed = recordingState === "transcribed";
+  const showTranscript = recordingState === "closed";
 
   useEffect(() => {
     async function asyncTranscribe() {
@@ -145,11 +143,14 @@ export const RecorderPage = () => {
       recorder.reset();
     });
 
-    setRecordingState("uploading");
+    setRecordingState("transcribing");
   };
 
   const closeRecorder = () => {
     setRecordingState("closed");
+    if (transcript === "") {
+      setTranscript("Empty transcript, try again");
+    }
   };
 
   const resetRecorder = () => {
@@ -157,15 +158,8 @@ export const RecorderPage = () => {
     setRecordingState(undefined);
     setTimer(0);
     setBlob(undefined);
-    setTranscript(undefined);
+    setTranscript("");
   };
-
-  const started = recordingState !== undefined;
-  const isPaused = recordingState === "paused";
-  const isRecording = recordingState === "recording";
-  const isTranscribing = recordingState === "transcribing";
-  const isTranscribed = recordingState === "transcribed";
-  const showTranscript = recordingState === "closed";
 
   const classes = useStyles();
 
@@ -195,7 +189,7 @@ export const RecorderPage = () => {
       )}
 
       {showTranscript && transcript && (
-        <TranscriptForm
+        <TranscriptDetails
           transcript={transcript}
           closeRecording={resetRecorder}
         />

@@ -4,9 +4,6 @@ import { createStyles, makeStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles(() =>
   createStyles({
     activeRecord: {
-      height: 60,
-      width: 350,
-      marginTop: 15,
       backgroundColor: "#FE855D",
       color: "#FFFFFF",
       borderRadius: 4,
@@ -30,10 +27,10 @@ export const StartRecording = ({ startRecorder }: IStartRecordingProps) => {
 
   const classes = useStyles();
   return (
-    <div>
+    <>
       <Button className={classes.activeRecord} onClick={handleStart}>
         Nieuwe opname
       </Button>
-    </div>
+    </>
   );
 };

@@ -1,8 +1,11 @@
-import { Button, CircularProgress } from "@material-ui/core";
+import { Button, CircularProgress, Theme } from "@material-ui/core";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
+    root: {
+      flexDirection: "column",
+    },
     uploadSpinner: {
       display: "flex",
       justifyContent: "center",
@@ -11,18 +14,15 @@ const useStyles = makeStyles(() =>
     },
     uploadText: {
       wordWrap: "break-word",
-      marginBottom: 10,
+      marginBottom: theme.spacing(2),
       textAlign: "center",
     },
     savedText: {
       wordWrap: "break-word",
-      marginBottom: 30,
+      marginBottom: theme.spacing(4),
       textAlign: "center",
     },
     closeButton: {
-      height: 60,
-      width: 350,
-      marginTop: 15,
       backgroundColor: "#FE855D",
       color: "#FFFFFF",
       borderRadius: 4,
@@ -31,6 +31,7 @@ const useStyles = makeStyles(() =>
       fontWeight: "bold",
       letterSpacing: 2.7,
       textAlign: "center",
+      marginBottom: theme.spacing(2),
     },
   }),
 );
@@ -48,7 +49,7 @@ export const FinishedRecording = ({
 }: IFinishedRecordingProps) => {
   const classes = useStyles();
   return (
-    <div>
+    <div className={classes.root}>
       {isProcessing && (
         <div className={classes.uploadSpinner}>
           <CircularProgress />
@@ -59,7 +60,11 @@ export const FinishedRecording = ({
 
       {isProcessed && <p className={classes.savedText}>Opgeslagen!</p>}
 
-      <Button className={classes.closeButton} onClick={finishedRecording}>
+      <Button
+        disabled={isProcessing}
+        className={classes.closeButton}
+        onClick={finishedRecording}
+      >
         Toon Transcript
       </Button>
     </div>
