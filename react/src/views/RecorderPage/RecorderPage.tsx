@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
 import RecordRTC, { Options } from "recordrtc";
 import { useWakeLock } from "react-screen-wake-lock";
@@ -45,6 +45,7 @@ const getAudioRecorderOptions = (): Options => ({
 export const RecorderPage = () => {
   const [recordingState, setRecordingState] = useState<string>();
   const [transcript, setTranscript] = useState<string>("");
+  const [showTimer, setShowTimer] = useState<boolean>(false);
 
   const [timer, setTimer] = useState(0);
   const increment = useRef<NodeJS.Timeout>();
@@ -102,6 +103,7 @@ export const RecorderPage = () => {
       const newRecorder = new RecordRTC(stream, options);
       setRecorder(newRecorder);
       newRecorder.startRecording();
+      setShowTimer(true);
       setRecordingState("recording");
     });
   };
@@ -147,6 +149,7 @@ export const RecorderPage = () => {
   };
 
   const closeRecorder = () => {
+    setShowTimer(false);
     setRecordingState("closed");
     if (transcript === "") {
       setTranscript(
@@ -159,16 +162,29 @@ export const RecorderPage = () => {
     // can we do this cleaner?
     setRecordingState(undefined);
     setTimer(0);
+    setShowTimer(false);
     setBlob(undefined);
     setTranscript("");
   };
 
   const classes = useStyles();
 
+  const onUploadAudio = useCallback(event => {
+    const uploadedFile = event.target.files[0];
+    setBlob(uploadedFile);
+    setShowTimer(false);
+    setRecordingState("transcribing");
+  }, []);
+
   return (
     <div className={classes.root}>
-      {!started && <StartRecording startRecorder={startRecorder} />}
-      {started && !showTranscript && (
+      {!started && (
+        <StartRecording
+          startRecorder={startRecorder}
+          handleUpload={onUploadAudio}
+        />
+      )}
+      {showTimer && (
         <>
           <p className={classes.timer}>{formatTime()}</p>
         </>
