@@ -4,10 +4,10 @@ This repo contains a .NET console app, demonstrating how to use the Attendo Spee
 
 * Transcribe Audio
 * Create a customer
-* Update a customer
-* Upsert a customer, based on external ID
 * Retrieve a customer by id
 * Retrieve a customer by external ID
+* Update a customer
+* Upsert a customer, based on external ID
 * Retrieve all customers
 
 ## Getting started
