@@ -13,16 +13,23 @@ pipelines:
             script:
               - IMAGE_NAME=$BITBUCKET_REPO_SLUG
               - docker login attendi.azurecr.io -u $AZURE_USER -p $AZURE_PASS
-              - docker build --build-arg stt_api_url=$STT_API_URL --build-arg stt_api_key=$STT_API_KEY -t attendi.azurecr.io/attendi-stt-client:latest react/
+              - docker build --build-arg stt_api_url=$STT_API_URL --build-arg stt_api_key=$STT_API_KEY -t attendi.azurecr.io/attendi-stt-client:latest react-typescript/
               - docker push attendi.azurecr.io/attendi-stt-client
             services:
               - docker
             size: 2x
             caches:
               - docker
+            condition:
+              changesets:
+                 includePaths:
+                   - "react-typescript/**"
         - step:
             name: Lint the Dockerfile
             image: hadolint/hadolint:latest-debian
             script:
-              - hadolint react/Dockerfile
-          
+              - hadolint react-typescript/Dockerfile
+            condition:
+              changesets:
+                 includePaths:
+                   - "react-typescript/**"
