@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace STTApiExampleApp
@@ -32,6 +34,31 @@ namespace STTApiExampleApp
         {
             var request = new CreateCustomerRequest(customerName, externalId);
             var response = await _client.PostAsJsonAsync($"{_BaseApiUrl }/v1/customers", request);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(responseBody);
+        }
+
+        public async Task UpdateCustomer(string customerName, int attendiCustomerId)
+        {
+            var request = new UpdateCustomerRequest(customerName);
+
+            string jsonString = JsonSerializer.Serialize(request);
+            // Note the mediaType, it's for merge patches
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/merge-patch+json");
+
+            var response = await _client.PatchAsync($"{_BaseApiUrl }/v1/customers/{attendiCustomerId}", httpContent);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(responseBody);
+        }
+
+        public async Task UpsertCustomer(string customerName, string externalId)
+        {
+            var request = new UpsertCustomerRequest(customerName);
+
+            string jsonString = JsonSerializer.Serialize(request);
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync($"{_BaseApiUrl }/v1/customers/{externalId}", httpContent);
             var responseBody = await response.Content.ReadAsStringAsync();
             Console.WriteLine(responseBody);
         }
