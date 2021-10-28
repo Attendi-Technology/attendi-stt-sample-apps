@@ -1,4 +1,4 @@
-import { ITranscript } from "./models/IRecording";
+import { ITranscript } from "./models/ITranscript";
 import { API } from "./APIUtils";
 
 const convertBlobToBase64 = (blob: Blob) =>

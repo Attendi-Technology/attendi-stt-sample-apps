@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import RecordRTC, { Options } from "recordrtc";
-import { useWakeLock } from "react-screen-wake-lock";
+import RecordRTC from "recordrtc";
 import { RecorderRecording } from "./components/RecorderRecording/RecorderRecording";
 import { StartRecording } from "./components/RecorderStart/StartRecording";
 import { FinishedRecording } from "./components/RecorderFinished/FinishedRecording";
 import { transcribeAudio } from "../../api/SpeechAPI";
 import { TranscriptDetails } from "./components/TranscriptDetails/TranscriptDetails";
+import { audioRecorderOptions, mediaStreamConstraints } from "./consts";
+import { DurationDisplay } from "../../components/DurationDisplay/DurationDisplay";
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -17,94 +18,59 @@ const useStyles = makeStyles(() =>
       alignItems: "center",
       justifyContent: "center",
     },
-    timer: {
-      fontSize: "2.4rem",
-    },
   }),
 );
 
-const mediaStreamConstraints: MediaStreamConstraints = {
-  video: false,
-  audio: {
-    echoCancellation: false,
-  },
-};
-
-const getAudioRecorderOptions = (): Options => ({
-  type: "audio",
-  mimeType: "audio/wav",
-  recorderType: RecordRTC.StereoAudioRecorder,
-  timeSlice: 100,
-  numberOfAudioChannels: 2,
-  bufferSize: 16384,
-  desiredSampRate: 16000,
-  audioBitsPerSecond: 128000,
-  disableLogs: true,
-});
+// TODO: Check if you can use the state from the RecordRTC recorder
+enum RecorderState {
+  Idle = "IDLE",
+  Recording = "RECORDING",
+  Paused = "PAUSED",
+  Transcribing = "TRANSCRIBING",
+  Transcribed = "TRANSCIRBED",
+  DisplayTranscript = "DISPLAYTRANSCRIPT",
+}
 
 export const RecorderPage = () => {
-  const [recordingState, setRecordingState] = useState<string>();
+  const [recordingState, setRecordingState] = useState<RecorderState>(
+    RecorderState.Idle,
+  );
   const [transcript, setTranscript] = useState<string>("");
-  const [showTimer, setShowTimer] = useState<boolean>(false);
+  const [showRecordingDuration, setShowRecordingDuration] =
+    useState<boolean>(false);
 
-  const [timer, setTimer] = useState(0);
+  const [recordingDurationInSeconds, setRecordingDurationInSeconds] =
+    useState<number>(0);
   const increment = useRef<NodeJS.Timeout>();
-
-  const { isSupported, request, release } = useWakeLock();
 
   const microphone = useRef<MediaStream>();
   const [recorder, setRecorder] = useState<RecordRTC | null>(null);
   const [blob, setBlob] = useState<Blob>();
-
-  const started = recordingState !== undefined;
-  const isPaused = recordingState === "paused";
-  const isRecording = recordingState === "recording";
-  const isTranscribing = recordingState === "transcribing";
-  const isTranscribed = recordingState === "transcribed";
-  const showTranscript = recordingState === "closed";
 
   useEffect(() => {
     async function asyncTranscribe() {
       if (blob) {
         const response = await transcribeAudio(blob);
         setTranscript(response.data.transcript);
-        setRecordingState("transcribed");
-
-        if (isSupported) {
-          release();
-        }
+        setRecordingState(RecorderState.Transcribed);
       }
     }
 
     asyncTranscribe();
-  }, [blob, isSupported, release]);
-
-  const formatTime = () => {
-    const getSeconds = `0${timer % 60}`.slice(-2);
-    const minutes = Math.floor(timer / 60);
-    const getMinutes = `0${minutes % 60}`.slice(-2);
-    const getHours = `0${Math.floor(timer / 3600)}`.slice(-2);
-
-    return `${getHours} : ${getMinutes} : ${getSeconds}`;
-  };
+  }, [blob]);
 
   const startRecorder = () => {
     increment.current = setInterval(() => {
-      setTimer(prevTimer => prevTimer + 1);
+      setRecordingDurationInSeconds(prevTimer => prevTimer + 1);
     }, 1000);
-
-    if (isSupported) {
-      request();
-    }
 
     navigator.mediaDevices.getUserMedia(mediaStreamConstraints).then(stream => {
       microphone.current = stream;
-      const options = getAudioRecorderOptions();
-      const newRecorder = new RecordRTC(stream, options);
+      const newRecorder = new RecordRTC(stream, audioRecorderOptions);
       setRecorder(newRecorder);
       newRecorder.startRecording();
-      setShowTimer(true);
-      setRecordingState("recording");
+      setShowRecordingDuration(true);
+      setRecordingState(RecorderState.Recording);
     });
   };
 
@@ -115,17 +81,17 @@ export const RecorderPage = () => {
 
     recorder?.pauseRecording();
 
-    setRecordingState("paused");
+    setRecordingState(RecorderState.Paused);
   };
 
   const resumeRecorder = () => {
     increment.current = setInterval(() => {
-      setTimer(prevTimer => prevTimer + 1);
+      setRecordingDurationInSeconds(prevTimer => prevTimer + 1);
     }, 1000);
 
     recorder?.resumeRecording();
 
-    setRecordingState("recording");
+    setRecordingState(RecorderState.Recording);
   };
 
   const stopRecorder = () => {
@@ -145,12 +111,12 @@ export const RecorderPage = () => {
       recorder.reset();
     });
 
-    setRecordingState("transcribing");
+    setRecordingState(RecorderState.Transcribing);
   };
 
   const closeRecorder = () => {
-    setShowTimer(false);
-    setRecordingState("closed");
+    setShowRecordingDuration(false);
+    setRecordingState(RecorderState.DisplayTranscript);
     if (transcript === "") {
       setTranscript(
         "We could not get any transcript from the audio, please try again",
@@ -160,22 +126,29 @@ export const RecorderPage = () => {
 
   const resetRecorder = () => {
     // can we do this cleaner?
-    setRecordingState(undefined);
-    setTimer(0);
-    setShowTimer(false);
+    setRecordingState(RecorderState.Idle);
+    setRecordingDurationInSeconds(0);
+    setShowRecordingDuration(false);
     setBlob(undefined);
     setTranscript("");
   };
 
-  const classes = useStyles();
-
   const onUploadAudio = useCallback(event => {
     const uploadedFile = event.target.files[0];
     setBlob(uploadedFile);
-    setShowTimer(false);
-    setRecordingState("transcribing");
+    setShowRecordingDuration(false);
+    setRecordingState(RecorderState.Transcribing);
   }, []);
 
+  const started = recordingState !== RecorderState.Idle;
+  const isPaused = recordingState === RecorderState.Paused;
+  const isRecording = recordingState === RecorderState.Recording;
+  const isTranscribing = recordingState === RecorderState.Transcribing;
+  const isTranscribed = recordingState === RecorderState.Transcribed;
+  const isDisplayTranscript =
+    recordingState === RecorderState.DisplayTranscript;
+
+  const classes = useStyles();
   return (
     <div className={classes.root}>
       {!started && (
@@ -184,9 +157,9 @@ export const RecorderPage = () => {
           handleUpload={onUploadAudio}
         />
       )}
-      {showTimer && (
+      {showRecordingDuration && (
         <>
-          <p className={classes.timer}>{formatTime()}</p>
+          <DurationDisplay durationInSeconds={recordingDurationInSeconds} />
         </>
       )}
       {(isRecording || isPaused) && (
@@ -206,7 +179,7 @@ export const RecorderPage = () => {
         />
       )}
 
-      {showTranscript && transcript && (
+      {isDisplayTranscript && transcript && (
         <TranscriptDetails
           transcript={transcript}
           closeRecording={resetRecorder}

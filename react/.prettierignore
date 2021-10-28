@@ -3,5 +3,4 @@ build
 coverage
 
 **/*.d.ts
-src/reportWebVitals.ts
 package-lock.json
