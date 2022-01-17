@@ -22,7 +22,9 @@ namespace STTApiExampleApp
         public async Task TranscribeAudioAsync()
         {
             byte[] audioData = File.ReadAllBytes("test.wav");
-            var request = new TranscribeRequest(audioData);
+            var config = new TranscribeConfig("ResidentialCare");
+            var metadata = new TranscribeMetadata(".NET Console App");
+            var request = new TranscribeRequest(audioData, "127121df-e3e5-4d74-a8d7-cf48c45e6460", config, metadata);
 
             // PostAsJson will take care of encoding the bytes as Base64
             var response = await _client.PostAsJsonAsync($"{_BaseApiUrl }/v1/speech/transcribe", request);
