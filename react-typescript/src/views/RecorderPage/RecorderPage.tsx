@@ -50,7 +50,11 @@ export const RecorderPage = () => {
   useEffect(() => {
     async function asyncTranscribe() {
       if (blob) {
-        const response = await transcribeAudio(blob);
+        const response = await transcribeAudio(
+          blob,
+          "127121df-e3e5-4d74-a8d7-cf48c45e6460",
+          "ResidentialCare",
+        );
         setTranscript(response.data.transcript);
         setRecordingState(RecorderState.Transcribed);
       }

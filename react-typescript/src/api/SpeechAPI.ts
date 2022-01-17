@@ -16,11 +16,22 @@ const convertBlobToBase64 = (blob: Blob) =>
     reader.readAsDataURL(blob);
   });
 
-export async function transcribeAudio(blob: Blob) {
+export async function transcribeAudio(
+  blob: Blob,
+  userId: string,
+  model: string,
+) {
   const blobBase64 = await convertBlobToBase64(blob);
 
   const body = {
     audio: blobBase64,
+    userId,
+    config: {
+      model,
+    },
+    metadata: {
+      userAgent: navigator.userAgent,
+    },
   };
 
   return API.post<ITranscript>("/v1/speech/transcribe", body);
